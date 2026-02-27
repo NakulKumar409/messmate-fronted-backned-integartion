@@ -6,23 +6,20 @@ function MessManager() {
   const navigate = useNavigate();
   const [messes, setMesses] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [form, setForm] = useState({
     name: "",
     location: "",
     price: "",
     rating: "",
   });
+
   const [editId, setEditId] = useState(null);
 
-  // Check token on load
+  // ✅ Only fetch data
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/");
-    } else {
-      fetchMesses();
-    }
-  }, [navigate]);
+    fetchMesses();
+  }, []);
 
   const fetchMesses = async () => {
     try {
@@ -41,6 +38,7 @@ function MessManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       if (editId) {
         await api.put(`/messes/${editId}`, form);
@@ -48,6 +46,7 @@ function MessManager() {
       } else {
         await api.post("/messes", form);
       }
+
       setForm({ name: "", location: "", price: "", rating: "" });
       fetchMesses();
     } catch (err) {
@@ -63,7 +62,12 @@ function MessManager() {
   };
 
   const handleEdit = (mess) => {
-    setForm(mess);
+    setForm({
+      name: mess.name,
+      location: mess.location,
+      price: mess.price,
+      rating: mess.rating,
+    });
     setEditId(mess._id);
   };
 
@@ -74,9 +78,8 @@ function MessManager() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
       <div className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between">
           <h1 className="text-2xl font-bold">Mess Dashboard</h1>
           <button
             onClick={handleLogout}
@@ -86,93 +89,76 @@ function MessManager() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Form */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4">
-            {editId ? "Edit Mess" : "Add New Mess"}
+        <div className="bg-white p-6 rounded shadow mb-8">
+          <h2 className="font-semibold mb-4">
+            {editId ? "Edit Mess" : "Add Mess"}
           </h2>
-          <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                value={form.name}
-                onChange={handleChange}
-                className="border p-2 rounded"
-                required
-              />
-              <input
-                type="text"
-                name="location"
-                placeholder="Location"
-                value={form.location}
-                onChange={handleChange}
-                className="border p-2 rounded"
-                required
-              />
-              <input
-                type="number"
-                name="price"
-                placeholder="Price"
-                value={form.price}
-                onChange={handleChange}
-                className="border p-2 rounded"
-                required
-              />
-              <input
-                type="number"
-                name="rating"
-                placeholder="Rating"
-                value={form.rating}
-                onChange={handleChange}
-                className="border p-2 rounded"
-                required
-              />
-            </div>
-            <div className="mt-4">
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded">
-                {editId ? "Update" : "Add"}
-              </button>
-              {editId && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditId(null);
-                    setForm({ name: "", location: "", price: "", rating: "" });
-                  }}
-                  className="ml-2 bg-gray-500 text-white px-6 py-2 rounded">
-                  Cancel
-                </button>
-              )}
-            </div>
+
+          <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Name"
+              className="border p-2 rounded"
+              required
+            />
+            <input
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              placeholder="Location"
+              className="border p-2 rounded"
+              required
+            />
+            <input
+              name="price"
+              type="number"
+              value={form.price}
+              onChange={handleChange}
+              placeholder="Price"
+              className="border p-2 rounded"
+              required
+            />
+            <input
+              name="rating"
+              type="number"
+              value={form.rating}
+              onChange={handleChange}
+              placeholder="Rating"
+              className="border p-2 rounded"
+              required
+            />
+
+            <button className="col-span-2 bg-blue-600 text-white py-2 rounded">
+              {editId ? "Update" : "Add"}
+            </button>
           </form>
         </div>
 
-        {/* Mess List */}
+        {/* List */}
         {loading ? (
           <p className="text-center">Loading...</p>
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {messes.map((mess) => (
-              <div key={mess._id} className="bg-white rounded-lg shadow p-4">
-                <h3 className="font-bold text-lg">{mess.name}</h3>
-                <p className="text-gray-600">{mess.location}</p>
-                <p className="text-blue-600 font-bold">₹{mess.price}</p>
-                <p className="text-yellow-600">Rating: {mess.rating}/5</p>
-                <div className="mt-2 flex space-x-2">
+              <div key={mess._id} className="bg-white p-4 rounded shadow">
+                <h3 className="font-bold">{mess.name}</h3>
+                <p>{mess.location}</p>
+                <p>₹{mess.price}</p>
+                <p>Rating: {mess.rating}</p>
+
+                <div className="mt-2 flex gap-2">
                   <button
                     onClick={() => handleEdit(mess)}
-                    className="bg-yellow-500 text-white px-3 py-1 rounded text-sm">
+                    className="bg-yellow-500 text-white px-2 py-1 rounded">
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(mess._id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded text-sm">
+                    className="bg-red-500 text-white px-2 py-1 rounded">
                     Delete
                   </button>
                 </div>
