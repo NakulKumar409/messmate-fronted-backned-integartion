@@ -8,6 +8,7 @@ const api = axios.create({
   },
 });
 
+// ✅ Request Interceptor (Token add karega)
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -19,12 +20,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// ✅ Response Interceptor (401 handle karega)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      localStorage.removeItem("user");
       window.location.href = "/";
     }
     return Promise.reject(error);
